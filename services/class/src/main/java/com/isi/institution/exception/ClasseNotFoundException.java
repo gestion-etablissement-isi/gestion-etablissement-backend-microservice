@@ -2,9 +2,11 @@ package com.isi.institution.exception;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
 
-@Data
-@EqualsAndHashCode(callSuper = true)
+@Getter
 public class ClasseNotFoundException extends RuntimeException {
-    private final String msg;
+    public ClasseNotFoundException(String message) {
+        super(message);
+    }
 }

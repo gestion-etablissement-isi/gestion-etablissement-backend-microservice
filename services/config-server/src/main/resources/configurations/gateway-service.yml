@@ -11,6 +11,10 @@ spring:
           uri: lb:http://CLASS-SERVICE
           predicates:
             - Path=/api/v1/class/**
+        - id: salle-service
+          uri: lb:http://CLASS-SERVICE
+          predicates:
+            - Path=/api/v1/salles/**
         - id: etudiant-service
           uri: lb:http://ETUDIANT-SERVICE
           predicates:
