@@ -15,10 +15,10 @@ spring:
           uri: lb:http://ETUDIANT-SERVICE
           predicates:
             - Path=/api/v1/etudiants/**
-#        - id: order-lines-service
-#          uri: lb:http://ORDER-SERVICE
-#          predicates:
-#            - Path=/api/v1/order-lines/**
+        - id: professeur-service
+          uri: lb:http://PROFESSEUR-SERVICE
+          predicates:
+            - Path=/api/v1/professeurs/**
 #        - id: product-service
 #          uri: lb:http://PRODUCT-SERVICE
 #          predicates:
