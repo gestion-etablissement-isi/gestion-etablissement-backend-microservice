@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CompilerConfiguration">
+    <annotationProcessing>
+      <profile default="true" name="Default" enabled="true" />
+      <profile name="Maven default annotation processors profile" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <module name="notification" />
+        <module name="config-server" />
+        <module name="discovery" />
+        <module name="gateway" />
+      </profile>
+      <profile name="Annotation profile for professeur" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <processorPath>
+          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/unknown/lombok-unknown.jar" />
+        </processorPath>
+        <module name="professeur" />
+        <module name="class" />
+        <module name="cours" />
+        <module name="etudiant" />
+      </profile>
+    </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="course" target="21" />
+      <module name="Professeur" target="17" />
+      <module name="student" target="21" />
+    </bytecodeTargetLevel>
+  </component>
+  <component name="JavacSettings">
+    <option name="ADDITIONAL_OPTIONS_OVERRIDE">
+      <module name="Professeur" options="-parameters" />
+      <module name="class" options="-parameters" />
+      <module name="config-server" options="-parameters" />
+      <module name="cours" options="-parameters" />
+      <module name="course" options="-parameters" />
+      <module name="discovery" options="-parameters" />
+      <module name="etudiant" options="-parameters" />
+      <module name="gateway" options="-parameters" />
+      <module name="notification" options="-parameters" />
+      <module name="professeur" options="-parameters" />
+      <module name="student" options="-parameters" />
+    </option>
+  </component>
+</project>

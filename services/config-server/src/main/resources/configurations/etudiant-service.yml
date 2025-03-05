@@ -1,0 +1,11 @@
+server:
+  port: 8020
+spring:
+  data:
+    mongodb:
+      username: linho
+      password: linho
+      host: localhost
+      port: 27017
+      database: student
+      authentication-database: admin
