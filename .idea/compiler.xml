@@ -18,20 +18,22 @@
         <processorPath>
           <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/unknown/lombok-unknown.jar" />
         </processorPath>
-        <module name="course" />
-        <module name="class" />
         <module name="professeur" />
       </profile>
       <profile name="Annotation profile for etudiant" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
-        <processorPath>
+        <outputRelativeToContentRoot value="true" />
+        <processorPath useClasspath="false">
           <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/unknown/lombok-unknown.jar" />
         </processorPath>
+        <module name="class" />
         <module name="etudiant" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
+      <module name="course" target="21" />
+      <module name="professeur" target="21" />
       <module name="student" target="21" />
     </bytecodeTargetLevel>
   </component>
