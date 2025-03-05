@@ -7,8 +7,6 @@ import org.mapstruct.factory.Mappers;
 @Mapper(componentModel = "spring")
 public interface EtudiantMapper {
 
-    EtudiantMapper INSTANCE = Mappers.getMapper(EtudiantMapper.class);
-
     @Mapping(target = "id", source = "id")
     Etudiant toStudentEntity(EtudiantRequest request);
 

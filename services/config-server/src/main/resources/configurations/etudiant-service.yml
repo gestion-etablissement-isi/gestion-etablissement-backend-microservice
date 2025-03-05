@@ -9,3 +9,15 @@ spring:
       port: 27017
       database: student
       authentication-database: admin
+
+  kafka:
+    producer:
+      bootstrap-servers: localhost:9092
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      properties:
+        spring.json.type.mapping: inscriptionConfirmation:com.isi.institution.kafka.InscriptionConfirmation
+
+  application:
+    config:
+      classe-url: http://localhost:8222/api/v1/class

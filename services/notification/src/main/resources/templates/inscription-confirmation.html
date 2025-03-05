@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Confirmation d'Inscription</title>
+    <style>
+        /* Votre style existant */
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>Confirmation d'Inscription</h1>
+    <p>Bonjour <span th:text="${etudiantName}"></span>,</p>
+    <p>Votre inscription a été confirmée avec succès !</p>
+
+    <div class="details">
+        <h2>Détails de l'Inscription</h2>
+        <p>Classe : <span th:text="${classeId}"></span></p>
+        <p>Année Scolaire : <span th:text="${anneeScolaire}"></span></p>
+    </div>
+
+    <div class="footer">
+        <p>Cordialement,</p>
+        <p>L'équipe Administrative</p>
+        <p>&copy; 2024 LinhoDevops. Tous droits réservés.</p>
+    </div>
+</div>
+</body>
+</html>

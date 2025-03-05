@@ -7,8 +7,8 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
-        <module name="notification" />
         <module name="config-server" />
+        <module name="notification" />
         <module name="discovery" />
         <module name="gateway" />
       </profile>
@@ -19,8 +19,15 @@
           <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/unknown/lombok-unknown.jar" />
         </processorPath>
         <module name="course" />
-        <module name="professeur" />
         <module name="class" />
+        <module name="professeur" />
+      </profile>
+      <profile name="Annotation profile for etudiant" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <processorPath>
+          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/unknown/lombok-unknown.jar" />
+        </processorPath>
         <module name="etudiant" />
       </profile>
     </annotationProcessing>
@@ -36,7 +43,7 @@
       <module name="discovery" options="-parameters" />
       <module name="etudiant" options="-parameters" />
       <module name="gateway" options="-parameters" />
-      <module name="notification" options="" />
+      <module name="notification" options="-parameters" />
       <module name="professeur" options="-parameters" />
       <module name="student" options="-parameters" />
     </option>

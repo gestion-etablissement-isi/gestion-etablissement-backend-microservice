@@ -19,15 +19,12 @@ spring:
           uri: lb:http://ETUDIANT-SERVICE
           predicates:
             - Path=/api/v1/etudiants/**
-        - id: professeur-service
-          uri: lb:http://PROFESSEUR-SERVICE
+        - id: inscription-service
+          uri: lb:http://ETUDIANT-SERVICE
           predicates:
-            - Path=/api/v1/professeurs/**
-#        - id: product-service
-#          uri: lb:http://PRODUCT-SERVICE
-#          predicates:
-#            - Path=/api/v1/products/**
-#        - id: payment-service
-#          uri: lb:http://PAYMENT-SERVICE
-#          predicates:
-#            - Path=/api/v1/payments/**
+            - Path=/api/v1/inscriptions/**
+        - id: notification-service
+          uri: lb:http://NOTIFICATION-SERVICE
+          predicates:
+            - Path=/api/v1/notifications/**
+
