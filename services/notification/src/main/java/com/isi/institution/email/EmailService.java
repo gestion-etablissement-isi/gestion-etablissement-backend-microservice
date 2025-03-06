@@ -8,6 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.context.Context;
 import org.thymeleaf.spring6.SpringTemplateEngine;
@@ -22,6 +23,7 @@ import static org.springframework.mail.javamail.MimeMessageHelper.*;
 @Service
 @Slf4j
 @RequiredArgsConstructor
+@EnableAsync
 public class EmailService {
 
 
@@ -59,9 +61,9 @@ public class EmailService {
             mailSender.send(mimeMessage);
             log.info("Email d'inscription envoyé à {} ", destinationEmail);
         } catch (MessagingException e) {
-            log.warn("Impossible d'envoyer l'email à {} ", destinationEmail);
+            log.error("Impossible d'envoyer l'email à {} : {}", destinationEmail, e.getMessage());
+            throw e; // Propager l'exception pour une gestion ultérieure
         }
     }
-
 
 }

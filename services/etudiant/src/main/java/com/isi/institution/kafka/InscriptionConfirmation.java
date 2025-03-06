@@ -7,7 +7,6 @@ public record InscriptionConfirmation(
         String etudiantId,
         String classeId,
         String anneeScolaire,
-        LocalDateTime dateInscription,
-        boolean confirmed
+        LocalDateTime dateInscription
 ) {
 }

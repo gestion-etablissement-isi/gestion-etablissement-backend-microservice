@@ -3,6 +3,8 @@ package com.isi.institution.inscription;
 
 import com.isi.institution.classe.ClasseClient;
 import com.isi.institution.etudiant.Inscription;
+import com.isi.institution.exception.ClasseNotFoundException;
+import com.isi.institution.exception.EtudiantExistException;
 import com.isi.institution.kafka.InscriptionConfirmation;
 import com.isi.institution.kafka.InscriptionEtudiant;
 import lombok.RequiredArgsConstructor;
@@ -30,45 +32,32 @@ public class InscriptionService {
     @Transactional
     public InscriptionResponse inscrire(InscriptionRequest request) {
         try {
-            // Vérifier si la classe existe
-            classeClient.findClassById(request.classeId())
-                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Classe non trouvée"));
 
-            // Vérifier si l'étudiant est déjà inscrit pour cette année scolaire
+            classeClient.findClassById(request.classeId())
+                    .orElseThrow(() -> new ClasseNotFoundException("Classe non trouvée"));
+
+
             if (repository.existsByEtudiantIdAndAnneeScolaire(request.etudiantId(), request.anneeScolaire())) {
                 log.error("Inscription échouée : Étudiant {} déjà inscrit pour l'année {}",
                         request.etudiantId(), request.anneeScolaire());
-                throw new RuntimeException("Étudiant déjà inscrit pour cette année scolaire");
+                throw new EtudiantExistException("Étudiant déjà inscrit pour cette année scolaire");
             }
 
-            // Créer l'inscription
+            // Créer et enregistrer l'inscription
             Inscription inscription = mapper.toInscription(request);
-
-            // Log avant la sauvegarde
-            log.info("Tentative d'enregistrement de l'inscription : {}", inscription);
-
             inscription = repository.save(inscription);
-
-            // Log après la sauvegarde
             log.info("Inscription enregistrée avec succès. ID : {}", inscription.getId());
 
-            // Publier un événement Kafka pour la notification
+            // Publier un événement Kafka
             InscriptionConfirmation confirmation = new InscriptionConfirmation(
                     inscription.getId(),
                     request.etudiantId(),
                     request.classeId(),
                     request.anneeScolaire(),
-                    LocalDateTime.now(),
-                    true
+                    LocalDateTime.now()
             );
-
-            try {
-                inscriptionEtudiant.sendInscriptionConfirmation(confirmation);
-                log.info("Événement Kafka envoyé avec succès pour l'inscription : {}", confirmation);
-            } catch (Exception e) {
-                log.error("Échec de l'envoi de l'événement Kafka", e);
-                // Vous pouvez choisir de lancer une exception ou de gérer différemment
-            }
+            inscriptionEtudiant.sendInscriptionConfirmation(confirmation);
+            log.info("Événement Kafka envoyé avec succès pour l'inscription : {}", confirmation);
 
             return mapper.fromInscription(inscription);
         } catch (Exception e) {
@@ -76,7 +65,6 @@ public class InscriptionService {
             throw e;
         }
     }
-
     public List<InscriptionResponse> getAllInscriptions() {
         return repository.findAll().stream()
                 .map(mapper::fromInscription)

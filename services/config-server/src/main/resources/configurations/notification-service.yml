@@ -1,5 +1,6 @@
 server:
   port: 8040
+
 spring:
   data:
     mongodb:
@@ -9,28 +10,31 @@ spring:
       port: 27017
       database: notification
       authentication-database: admin
+
   kafka:
     consumer:
       bootstrap-servers: localhost:9092
       group-id: inscriptionGroup
       auto-offset-reset: earliest
-      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      key-deserializer: org.springframework.kafka.support.serializer.ErrorHandlingDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.ErrorHandlingDeserializer
       properties:
+        spring.deserializer.key.delegate.class: org.apache.kafka.common.serialization.StringDeserializer
+        spring.deserializer.value.delegate.class: org.springframework.kafka.support.serializer.JsonDeserializer
         spring.json.trusted.packages: '*'
-        spring.json.type.mapping: inscriptionConfirmation:com.isi.institution.kafka.etudiant.InscriptionConfirmation
+        spring.json.type.mapping: inscriptionRequest:com.isi.institution.inscription.InscriptionRequest
   mail:
-    host: localhost
-    port: 1025
-    username: linho
-    password: linho
+    host: smtp.gmail.com
+    port: 587
+    username: aliou.18.ndour@gmail.com
+    password: lzgt jtok qwld jfsx
     properties:
       mail:
         smtp:
-          trust: "*"
-        auth: true
-        starttls:
-          enabled: true
-        connectiontimeout: 5000
-        timeout: 3000
-        writetimeout: 5000
+          auth: true
+          starttls:
+            enable: true
+          connectiontimeout: 5000
+          timeout: 3000
+          writetimeout: 5000
+
