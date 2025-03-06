@@ -6,7 +6,6 @@
       <profile name="Maven default annotation processors profile" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
-        <outputRelativeToContentRoot value="true" />
         <module name="notification" />
         <module name="config-server" />
         <module name="discovery" />
@@ -19,13 +18,23 @@
           <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/unknown/lombok-unknown.jar" />
         </processorPath>
         <module name="professeur" />
-        <module name="class" />
         <module name="cours" />
+        <module name="class" />
         <module name="etudiant" />
+      </profile>
+      <profile name="Annotation profile for emploi" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <processorPath>
+          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/unknown/lombok-unknown.jar" />
+        </processorPath>
+        <module name="emploi" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
       <module name="course" target="21" />
+      <module name="emploi-du-temps" target="17" />
+      <module name="etablissement" target="17" />
       <module name="Professeur" target="17" />
       <module name="student" target="21" />
     </bytecodeTargetLevel>
@@ -38,6 +47,9 @@
       <module name="cours" options="-parameters" />
       <module name="course" options="-parameters" />
       <module name="discovery" options="-parameters" />
+      <module name="emploi" options="-parameters" />
+      <module name="emploi-du-temps" options="-parameters" />
+      <module name="etablissement" options="-parameters" />
       <module name="etudiant" options="-parameters" />
       <module name="gateway" options="-parameters" />
       <module name="notification" options="-parameters" />

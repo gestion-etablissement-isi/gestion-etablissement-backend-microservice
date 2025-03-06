@@ -27,6 +27,14 @@ spring:
           uri: lb:http://ETUDIANT-SERVICE
           predicates:
             - Path=/api/v1/etudiants/**
+        - id: emploi-service
+          uri: lb:http://EMPLOI-SERVICE
+          predicates:
+            - Path=/api/v1/creneau/**
+        - id: description-service
+          uri: lb:http://EMPLOI-SERVICE
+          predicates:
+              - Path=/api/v1/description/**
 #        - id: order-lines-service
 #          uri: lb:http://ORDER-SERVICE
 #          predicates:

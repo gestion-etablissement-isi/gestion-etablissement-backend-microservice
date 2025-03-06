@@ -1,0 +1,15 @@
+spring:
+  data:
+    mongodb:
+      username: linho
+      password: linho
+      host: localhost
+      port: 27017
+      database: emploi
+      authentication-database: admin
+server:
+  port: 8033
+application:
+  config:
+    cours-url: http://localhost:8222/api/v1/cours
+

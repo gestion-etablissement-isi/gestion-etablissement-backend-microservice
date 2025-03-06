@@ -19,5 +19,7 @@ public class ClasseEntity {
     @Id
     private String id;
     private String nom;
+    private int capacite;
+    private int effectif = 0;
     private String annee_scolaire;
 }

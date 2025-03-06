@@ -15,12 +15,15 @@
         <option value="$PROJECT_DIR$/services/cours/pom.xml" />
         <option value="$PROJECT_DIR$/services/Professeur/pom.xml" />
         <option value="$PROJECT_DIR$/services/professeur/pom.xml" />
+        <option value="$PROJECT_DIR$/services/emploi-du-temps/pom.xml" />
+        <option value="$PROJECT_DIR$/services/emploi/pom.xml" />
       </list>
     </option>
     <option name="ignoredFiles">
       <set>
         <option value="$PROJECT_DIR$/services/Professeur/pom.xml" />
         <option value="$PROJECT_DIR$/services/course/pom.xml" />
+        <option value="$PROJECT_DIR$/services/emploi-du-temps/pom.xml" />
       </set>
     </option>
   </component>
