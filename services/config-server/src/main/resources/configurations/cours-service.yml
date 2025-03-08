@@ -1,0 +1,16 @@
+server:
+  port: 8013
+spring:
+  data:
+    mongodb:
+      username: linho
+      password: linho
+      host: localhost
+      port: 27017
+      database: cours
+      authentication-database: admin
+application:
+  config:
+    professeur-url: http://localhost:8222/api/v1/professeurs
+    classe-url: http://localhost:8222/api/v1/class
+

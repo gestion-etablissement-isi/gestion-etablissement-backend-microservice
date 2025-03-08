@@ -62,7 +62,7 @@ public class EmailService {
             log.info("Email d'inscription envoyé à {} ", destinationEmail);
         } catch (MessagingException e) {
             log.error("Impossible d'envoyer l'email à {} : {}", destinationEmail, e.getMessage());
-            throw e; // Propager l'exception pour une gestion ultérieure
+            throw e;
         }
     }
 

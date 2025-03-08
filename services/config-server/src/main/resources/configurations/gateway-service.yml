@@ -27,4 +27,25 @@ spring:
           uri: lb:http://NOTIFICATION-SERVICE
           predicates:
             - Path=/api/v1/notifications/**
+        - id: cours-service
+          uri: lb:http://COURS-SERVICE
+          predicates:
+            - Path=/api/v1/cours/**
+        - id: matiere-service
+          uri: lb:http://COURS-SERVICE
+          predicates:
+            - Path=/api/v1/matiere/**
+        - id: professeur-service
+          uri: lb:http://PROFESSEUR-SERVICE
+          predicates:
+            - Path=/api/v1/professeurs/**
+        - id: emploi-service
+          uri: lb:http://EMPLOI-SERVICE
+          predicates:
+            - Path=/api/v1/creneau/**
+        - id: description-service
+          uri: lb:http://EMPLOI-SERVICE
+          predicates:
+            - Path=/api/v1/description/**
+
 

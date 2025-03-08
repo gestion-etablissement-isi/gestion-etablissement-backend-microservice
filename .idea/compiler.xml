@@ -18,21 +18,15 @@
         <processorPath>
           <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/unknown/lombok-unknown.jar" />
         </processorPath>
+        <module name="emploi" />
         <module name="professeur" />
-      </profile>
-      <profile name="Annotation profile for etudiant" enabled="true">
-        <sourceOutputDir name="target/generated-sources/annotations" />
-        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
-        <processorPath>
-          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/unknown/lombok-unknown.jar" />
-        </processorPath>
+        <module name="cours" />
         <module name="class" />
         <module name="etudiant" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
       <module name="course" target="21" />
-      <module name="professeur" target="21" />
       <module name="student" target="21" />
     </bytecodeTargetLevel>
   </component>
@@ -40,8 +34,10 @@
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
       <module name="class" options="-parameters" />
       <module name="config-server" options="-parameters" />
+      <module name="cours" options="-parameters" />
       <module name="course" options="-parameters" />
       <module name="discovery" options="-parameters" />
+      <module name="emploi" options="-parameters" />
       <module name="etudiant" options="-parameters" />
       <module name="gateway" options="-parameters" />
       <module name="notification" options="-parameters" />

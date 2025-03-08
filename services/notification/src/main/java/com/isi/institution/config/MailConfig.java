@@ -15,17 +15,17 @@ public class MailConfig {
     @Bean
     public JavaMailSender javaMailSender() {
         JavaMailSenderImpl mailSender = new JavaMailSenderImpl();
-        mailSender.setHost("smtp.gmail.com"); // Remplacez par votre serveur SMTP
-        mailSender.setPort(587); // Port SMTP pour Gmail
+        mailSender.setHost("smtp.gmail.com");
+        mailSender.setPort(587);
 
-        mailSender.setUsername("aliou.18.ndour@gmail.com"); // Remplacez par votre adresse email
-        mailSender.setPassword("lzgt jtok qwld jfsx"); // Remplacez par votre mot de passe
+        mailSender.setUsername("aliou.18.ndour@gmail.com");
+        mailSender.setPassword("lzgt jtok qwld jfsx");
 
         Properties props = mailSender.getJavaMailProperties();
         props.put("mail.transport.protocol", "smtp");
         props.put("mail.smtp.auth", "true");
         props.put("mail.smtp.starttls.enable", "true");
-        props.put("mail.debug", "true"); // Active le mode debug pour le débogage
+        props.put("mail.debug", "true");
 
         return mailSender;
     }

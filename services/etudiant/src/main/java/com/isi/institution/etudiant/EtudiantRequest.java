@@ -4,7 +4,6 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotNull;
 
 public record EtudiantRequest(
-        String id,
         @NotNull(message = "Le prénom de l'étudiant est obligatoire")
         String nom,
         @NotNull(message = "Le nom de l'étudiant est obligatoire")

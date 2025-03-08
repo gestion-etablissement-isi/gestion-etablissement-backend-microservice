@@ -1,0 +1,14 @@
+server:
+  port: 8015
+spring:
+  data:
+    mongodb:
+      username: linho
+      password: linho
+      host: localhost
+      port: 27017
+      database: professeurs
+      authentication-database: admin
+application:
+  config:
+    matiere-url: http://localhost:8222/api/v1/matiere
