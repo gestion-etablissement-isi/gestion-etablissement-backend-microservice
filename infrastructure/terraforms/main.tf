@@ -7,7 +7,7 @@ terraform {
   }
 
   backend "s3" {
-    bucket = "gestion-etablissement-terraform-state"
+    bucket = "gestion-etablissement-terraform-states"
     key    = "state/terraform.tfstate"
     region = "eu-west-3"
     endpoint = "http://host.docker.internal:9900"
