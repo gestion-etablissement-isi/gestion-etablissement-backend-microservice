@@ -1,0 +1,56 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: classe-service
+  namespace: dev
+  labels:
+    app: classe-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: classe-service
+  template:
+    metadata:
+      labels:
+        app: classe-service
+    spec:
+      containers:
+        - name: classe-service
+          image: localhost:5000/classe-service:latest
+          ports:
+            - containerPort: 8090
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: dev
+            - name: SPRING_DATA_MONGODB_HOST
+              value: mongodb
+            - name: SPRING_DATA_MONGODB_PORT
+              value: "27017"
+            - name: SPRING_DATA_MONGODB_DATABASE
+              value: classe
+            - name: SPRING_DATA_MONGODB_USERNAME
+              value: linho
+            - name: SPRING_DATA_MONGODB_PASSWORD
+              value: linho
+            - name: SPRING_DATA_MONGODB_AUTHENTICATION_DATABASE
+              value: admin
+          resources:
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+            requests:
+              cpu: "200m"
+              memory: "256Mi"
+          readinessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8090
+            initialDelaySeconds: 60
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8090
+            initialDelaySeconds: 120
+            periodSeconds: 30

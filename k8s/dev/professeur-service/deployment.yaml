@@ -1,0 +1,58 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: professeur-service
+  namespace: dev
+  labels:
+    app: professeur-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: professeur-service
+  template:
+    metadata:
+      labels:
+        app: professeur-service
+    spec:
+      containers:
+        - name: professeur-service
+          image: localhost:5000/professeur-service:latest
+          ports:
+            - containerPort: 8015
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: dev
+            - name: SPRING_DATA_MONGODB_HOST
+              value: mongodb
+            - name: SPRING_DATA_MONGODB_PORT
+              value: "27017"
+            - name: SPRING_DATA_MONGODB_DATABASE
+              value: professeurs
+            - name: SPRING_DATA_MONGODB_USERNAME
+              value: linho
+            - name: SPRING_DATA_MONGODB_PASSWORD
+              value: linho
+            - name: SPRING_DATA_MONGODB_AUTHENTICATION_DATABASE
+              value: admin
+            - name: APPLICATION_CONFIG_MATIERE_URL
+              value: http://gateway-service/api/v1/matiere
+          resources:
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+            requests:
+              cpu: "200m"
+              memory: "256Mi"
+          readinessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8015
+            initialDelaySeconds: 60
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8015
+            initialDelaySeconds: 120
+            periodSeconds: 30

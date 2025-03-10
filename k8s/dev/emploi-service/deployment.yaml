@@ -1,0 +1,58 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: emploi-service
+  namespace: dev
+  labels:
+    app: emploi-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: emploi-service
+  template:
+    metadata:
+      labels:
+        app: emploi-service
+    spec:
+      containers:
+        - name: emploi-service
+          image: localhost:5000/emploi-service:latest
+          ports:
+            - containerPort: 8033
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: dev
+            - name: SPRING_DATA_MONGODB_HOST
+              value: mongodb
+            - name: SPRING_DATA_MONGODB_PORT
+              value: "27017"
+            - name: SPRING_DATA_MONGODB_DATABASE
+              value: emploi
+            - name: SPRING_DATA_MONGODB_USERNAME
+              value: linho
+            - name: SPRING_DATA_MONGODB_PASSWORD
+              value: linho
+            - name: SPRING_DATA_MONGODB_AUTHENTICATION_DATABASE
+              value: admin
+            - name: APPLICATION_CONFIG_COURS_URL
+              value: http://gateway-service/api/v1/cours
+          resources:
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+            requests:
+              cpu: "200m"
+              memory: "256Mi"
+          readinessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8033
+            initialDelaySeconds: 60
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8033
+            initialDelaySeconds: 120
+            periodSeconds: 30

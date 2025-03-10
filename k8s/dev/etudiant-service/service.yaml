@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: etudiant-service
+  namespace: dev
+spec:
+  selector:
+    app: etudiant-service
+  ports:
+    - port: 80
+      targetPort: 8020
+  type: ClusterIP

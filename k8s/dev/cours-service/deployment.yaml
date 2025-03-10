@@ -1,0 +1,60 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cours-service
+  namespace: dev
+  labels:
+    app: cours-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: cours-service
+  template:
+    metadata:
+      labels:
+        app: cours-service
+    spec:
+      containers:
+        - name: cours-service
+          image: localhost:5000/cours-service:latest
+          ports:
+            - containerPort: 8013
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: dev
+            - name: SPRING_DATA_MONGODB_HOST
+              value: mongodb
+            - name: SPRING_DATA_MONGODB_PORT
+              value: "27017"
+            - name: SPRING_DATA_MONGODB_DATABASE
+              value: cours
+            - name: SPRING_DATA_MONGODB_USERNAME
+              value: linho
+            - name: SPRING_DATA_MONGODB_PASSWORD
+              value: linho
+            - name: SPRING_DATA_MONGODB_AUTHENTICATION_DATABASE
+              value: admin
+            - name: APPLICATION_CONFIG_PROFESSEUR_URL
+              value: http://gateway-service/api/v1/professeurs
+            - name: APPLICATION_CONFIG_CLASSE_URL
+              value: http://gateway-service/api/v1/class
+          resources:
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+            requests:
+              cpu: "200m"
+              memory: "256Mi"
+          readinessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8013
+            initialDelaySeconds: 60
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8013
+            initialDelaySeconds: 120
+            periodSeconds: 30

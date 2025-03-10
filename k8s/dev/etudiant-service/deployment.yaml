@@ -1,0 +1,60 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: etudiant-service
+  namespace: dev
+  labels:
+    app: etudiant-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: etudiant-service
+  template:
+    metadata:
+      labels:
+        app: etudiant-service
+    spec:
+      containers:
+        - name: etudiant-service
+          image: localhost:5000/etudiant-service:latest
+          ports:
+            - containerPort: 8020
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: dev
+            - name: SPRING_DATA_MONGODB_HOST
+              value: mongodb
+            - name: SPRING_DATA_MONGODB_PORT
+              value: "27017"
+            - name: SPRING_DATA_MONGODB_DATABASE
+              value: student
+            - name: SPRING_DATA_MONGODB_USERNAME
+              value: linho
+            - name: SPRING_DATA_MONGODB_PASSWORD
+              value: linho
+            - name: SPRING_DATA_MONGODB_AUTHENTICATION_DATABASE
+              value: admin
+            - name: SPRING_KAFKA_PRODUCER_BOOTSTRAP_SERVERS
+              value: kafka:9092
+            - name: APPLICATION_CONFIG_CLASSE_URL
+              value: http://gateway-service/api/v1/class
+          resources:
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+            requests:
+              cpu: "200m"
+              memory: "256Mi"
+          readinessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8020
+            initialDelaySeconds: 60
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8020
+            initialDelaySeconds: 120
+            periodSeconds: 30
