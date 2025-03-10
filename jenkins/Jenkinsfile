@@ -26,7 +26,7 @@ pipeline {
         SONAR_CREDENTIALS_ID = 'sonar-credentials'
         AWS_REGION = 'eu-west-3'
         AWS_CREDENTIALS_ID = 'aws-credentials'
-        TERRAFORM_DIR = 'infrastructure/terraforms'
+        TERRAFORM_DIR = 'infrastructure/terraform'
         ANSIBLE_DIR = 'infrastructure/ansible'
         K8S_CONFIG_DIR = 'k8s/${params.ENV}/${params.SERVICE}'
     }
