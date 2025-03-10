@@ -1,0 +1,276 @@
+pipeline {
+    agent any
+
+    tools {
+        maven 'Maven 3.9.5'
+        jdk 'JDK 21'
+    }
+
+    parameters {
+        choice(name: 'SERVICE', choices: ['classe-service', 'cours-service', 'etudiant-service', 'professeur-service', 'emploi-service', 'gateway-service', 'config-server', 'discovery-service'], description: 'Sélectionnez le microservice à construire')
+        choice(name: 'ENV', choices: ['dev', 'staging', 'preprod', 'prod'], description: 'Environnement cible')
+        booleanParam(name: 'PROVISION_INFRASTRUCTURE', defaultValue: false, description: 'Provisionner l\'infrastructure avec Terraform')
+        booleanParam(name: 'CONFIGURE_ENVIRONMENT', defaultValue: false, description: 'Configurer l\'environnement avec Ansible')
+    }
+
+    environment {
+        GITHUB_REPO = 'https://github.com/gestion-etablissement-isi/gestion-etablissement-backend-microservice.git'
+        GITHUB_CREDENTIALS_ID = 'github-credentials'
+        DOCKER_REGISTRY_DEV = 'localhost:5000'
+        DOCKER_REGISTRY_PREPROD = 'docker.io/linho117'
+        AWS_ECR_URL = '${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com'
+        NEXUS_URL = 'http://localhost:8018/repository'
+        NEXUS_VERSION = 'nexus3'
+        NEXUS_CREDENTIALS_ID = 'nexus-credentials'
+        SONAR_URL = 'http://localhost:9009'
+        SONAR_CREDENTIALS_ID = 'sonar-credentials'
+        AWS_REGION = 'eu-west-3'
+        AWS_CREDENTIALS_ID = 'aws-credentials'
+        TERRAFORM_DIR = 'infrastructure/terraforms'
+        ANSIBLE_DIR = 'infrastructure/ansible'
+        K8S_CONFIG_DIR = 'k8s/${params.ENV}/${params.SERVICE}'
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout([$class: 'GitSCM',
+                          branches: [[name: '*/main']],
+                          userRemoteConfigs: [[url: "${GITHUB_REPO}", credentialsId: "${GITHUB_CREDENTIALS_ID}"]]])
+                echo "Récupération du code source pour le microservice ${params.SERVICE}"
+            }
+        }
+
+        stage('Provisionnement Infrastructure') {
+            when {
+                expression { return params.PROVISION_INFRASTRUCTURE }
+            }
+            steps {
+                withCredentials([[$class: 'AmazonWebServicesCredentialsBinding',
+                                 credentialsId: "${AWS_CREDENTIALS_ID}",
+                                 accessKeyVariable: 'AWS_ACCESS_KEY_ID',
+                                 secretKeyVariable: 'AWS_SECRET_ACCESS_KEY']]) {
+                    dir("${TERRAFORM_DIR}") {
+                        sh "terraform init"
+                        sh "terraform workspace select ${params.ENV} || terraform workspace new ${params.ENV}"
+                        sh "terraform plan -var environment=${params.ENV} -out=tfplan"
+                        sh "terraform apply -auto-approve tfplan"
+
+                        // Stocker les outputs Terraform pour utilisation ultérieure
+                        script {
+                            def outputs = sh(script: "terraform output -json", returnStdout: true).trim()
+                            def outputsJson = readJSON text: outputs
+                            env.CLUSTER_NAME = outputsJson.cluster_name.value
+                            env.ECR_REPOSITORY_URL = outputsJson.ecr_repository_urls.value[params.SERVICE]
+                        }
+                    }
+                }
+                echo "Infrastructure provisionnée avec Terraform pour l'environnement ${params.ENV}"
+            }
+        }
+
+        stage('Configuration Environnement') {
+            when {
+                expression { return params.CONFIGURE_ENVIRONMENT }
+            }
+            steps {
+                withCredentials([[$class: 'AmazonWebServicesCredentialsBinding',
+                                 credentialsId: "${AWS_CREDENTIALS_ID}",
+                                 accessKeyVariable: 'AWS_ACCESS_KEY_ID',
+                                 secretKeyVariable: 'AWS_SECRET_ACCESS_KEY']]) {
+                    dir("${ANSIBLE_DIR}") {
+                        sh """
+                        export CLUSTER_NAME=${env.CLUSTER_NAME ?: "gestion-etablissement-${params.ENV}"}
+                        export AWS_REGION=${AWS_REGION}
+                        export ENVIRONMENT=${params.ENV}
+                        ansible-playbook playbook.yml
+                        """
+                    }
+                }
+                echo "Environnement configuré avec Ansible pour ${params.ENV}"
+            }
+        }
+
+        stage('Build') {
+            steps {
+                dir("services/${params.SERVICE}") {
+                    sh 'mvn clean install -DskipTests'
+                    echo "Build terminé pour ${params.SERVICE}"
+                }
+            }
+        }
+
+        stage('Tests Unitaires') {
+            steps {
+                dir("services/${params.SERVICE}") {
+                    sh 'mvn test'
+                    junit '**/target/surefire-reports/*.xml'
+                    echo "Tests unitaires terminés pour ${params.SERVICE}"
+                }
+            }
+        }
+
+        stage('Analyse SonarQube') {
+            steps {
+                dir("services/${params.SERVICE}") {
+                    withSonarQubeEnv(credentialsId: "${SONAR_CREDENTIALS_ID}", installationName: 'SonarQube') {
+                        sh 'mvn sonar:sonar -Dsonar.projectKey=${params.SERVICE} -Dsonar.projectName=${params.SERVICE}'
+                    }
+                    echo "Analyse SonarQube terminée pour ${params.SERVICE}"
+                }
+            }
+        }
+
+        stage('Quality Gate') {
+            steps {
+                timeout(time: 1, unit: 'HOURS') {
+                    waitForQualityGate abortPipeline: true
+                }
+                echo "Quality Gate validée pour ${params.SERVICE}"
+            }
+        }
+
+         stage('Package') {
+                    steps {
+                       dir("services/${params.SERVICE}") {
+                            sh 'mvn package -DskipTests'
+                            echo "Processus de packaging terminé pour ${params.SERVICE}"
+                       }
+                    }
+                }
+
+        stage(' Publication Artifact') {
+            steps {
+                    script {
+                        if (params.ENV == 'dev' || params.ENV == 'staging') {
+                            // Publication dans Nexus local
+                            nexusArtifactUploader(
+                                nexusVersion: "${NEXUS_VERSION}",
+                                protocol: 'http',
+                                nexusUrl: "${NEXUS_URL}",
+                                groupId: 'com.isi.institution',
+                                version: "1.0.0-${params.ENV}",
+                                repository: "${params.ENV}-repository",
+                                credentialsId: "${NEXUS_CREDENTIALS_ID}",
+                                artifacts: [
+                                    [artifactId: "${params.SERVICE}", type: 'jar', file: "target/${params.SERVICE}-1.0.0.jar"]
+                                ]
+                            )
+                            echo "Artifact publié dans le repository local Nexus pour ${params.SERVICE}"
+                        } else {
+                            // Publication dans Nexus public
+                            nexusArtifactUploader(
+                                nexusVersion: "${NEXUS_VERSION}",
+                                protocol: 'http',
+                                nexusUrl: "${NEXUS_URL}",
+                                groupId: 'com.isi.institution',
+                                version: "1.0.0-${params.ENV}",
+                                repository: "public-repository",
+                                credentialsId: "${NEXUS_CREDENTIALS_ID}",
+                                artifacts: [
+                                    [artifactId: "${params.SERVICE}", type: 'jar', file: "target/${params.SERVICE}-1.0.0.jar"]
+                                ]
+                            )
+                            echo "Artifact publié dans le repository public Nexus pour ${params.SERVICE}"
+                        }
+                }
+            }
+        }
+
+        stage('Construction Image Docker') {
+            steps {
+                dir("services/${params.SERVICE}") {
+                    sh 'cp target/${params.SERVICE}-1.0.0.jar src/main/docker/'
+                    sh 'docker build -t ${params.SERVICE}:latest -f src/main/docker/Dockerfile src/main/docker'
+                    echo "Image Docker construite pour ${params.SERVICE}"
+                }
+            }
+        }
+
+        stage('Publication Image Docker') {
+            steps {
+                script {
+                    if (params.ENV == 'dev') {
+                        // Publication dans le registry local
+                        sh "docker tag ${params.SERVICE}:latest ${DOCKER_REGISTRY_DEV}/${params.SERVICE}:latest"
+                        sh "docker push ${DOCKER_REGISTRY_DEV}/${params.SERVICE}:latest"
+                        echo "Image Docker publiée dans le registry local pour ${params.SERVICE}"
+                    } else if (params.ENV == 'staging') {
+                        // Publication dans le registry local
+                        sh "docker tag ${params.SERVICE}:latest ${DOCKER_REGISTRY_DEV}/${params.SERVICE}:latest"
+                        sh "docker push ${DOCKER_REGISTRY_DEV}/${params.SERVICE}:latest"
+                        echo "Image Docker publiée dans le registry local pour ${params.SERVICE}"
+                    } else {
+                        // Publication dans le registry AWS ECR
+                        withCredentials([[$class: 'AmazonWebServicesCredentialsBinding',
+                                        credentialsId: "${AWS_CREDENTIALS_ID}",
+                                        accessKeyVariable: 'AWS_ACCESS_KEY_ID',
+                                        secretKeyVariable: 'AWS_SECRET_ACCESS_KEY']]) {
+                            sh "aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${env.ECR_REPOSITORY_URL}"
+                            sh "docker tag ${params.SERVICE}:latest ${env.ECR_REPOSITORY_URL}:latest"
+                            sh "docker push ${env.ECR_REPOSITORY_URL}:latest"
+                        }
+                        echo "Image Docker publiée dans le registry AWS ECR pour ${params.SERVICE}"
+                    }
+                }
+            }
+        }
+
+        stage('Mise à jour des configurations Kubernetes') {
+            steps {
+                dir("${K8S_CONFIG_DIR}") {
+                    script {
+                        // Mise à jour du fichier de déploiement avec la nouvelle image
+                        if (params.ENV == 'dev' || params.ENV == 'staging') {
+                            sh """
+                            sed -i 's|image:.*|image: ${DOCKER_REGISTRY_DEV}/${params.SERVICE}:latest|g' deployment.yaml
+                            """
+                        } else {
+                            sh """
+                            sed -i 's|image:.*|image: ${env.ECR_REPOSITORY_URL}:latest|g' deployment.yaml
+                            """
+                        }
+
+                        // Commit et push des changements
+                        sh """
+                        git config user.email "jenkins@example.com"
+                        git config user.name "Jenkins"
+                        git add deployment.yaml
+                        git commit -m "Update ${params.SERVICE} image for ${params.ENV} environment" || echo "No changes to commit"
+                        git push origin main || echo "Nothing to push"
+                        """
+                    }
+                    echo "Configuration Kubernetes mise à jour pour ${params.SERVICE} dans l'environnement ${params.ENV}"
+                }
+            }
+        }
+
+        stage('Déploiement') {
+            steps {
+                script {
+                    if (params.ENV == 'dev') {
+                        // Déploiement sur Docker local
+                        sh "docker stop ${params.SERVICE} || true"
+                        sh "docker rm ${params.SERVICE} || true"
+                        sh "docker run -d --name ${params.SERVICE} --network microservices-net -p 8080:8080 ${DOCKER_REGISTRY_DEV}/${params.SERVICE}:latest"
+                        echo "Service déployé sur Docker local pour ${params.SERVICE}"
+                    } else {
+                        echo "Les modifications de configuration K8s ont été poussées. ArgoCD va synchroniser automatiquement."
+                    }
+                }
+            }
+        }
+    }
+
+    post {
+        success {
+            echo "Pipeline terminé avec succès pour ${params.SERVICE} dans l'environnement ${params.ENV}!"
+        }
+        failure {
+            echo "Pipeline échoué pour ${params.SERVICE} dans l'environnement ${params.ENV}!"
+        }
+        always {
+            cleanWs()
+        }
+    }
+}
