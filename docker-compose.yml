@@ -1,35 +1,41 @@
 services:
-  postgresql:
-    container_name: ms_pg_sql
-    image: postgres
-    environment:
-      POSTGRES_USER: linho
-      POSTGRES_PASSWORD: linho
-      PGDATA: /data/postgres
+
+  terraform:
+    image: hashicorp/terraform:1.5.0
     volumes:
-      - postgres:/data/postgres
-    ports:
-      - "5445:5432"
-    networks:
-      - microservices-net
-    restart: unless-stopped
-
-  pgadmin:
-    container_name: ms_pgadmin
-    image: dpage/pgadmin4
+      - ./infrastructure/terraform:/terraform
+      - terraform_plugins:/root/.terraform.d/plugins
+      - terraform_cache:/root/.terraform.d/plugin-cache
+      - ~/.aws:/root/.aws
     environment:
-      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL:-pgadmin4@pgadmin.org}
-      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD:-admin}
-      PGADMIN_CONFIG_SERVER_MODE: 'False'
-    volumes:
-      - pgadmin:/var/lib/pgadmin
+#      - AWS_ACCESS_KEY_ID=minioadmin
+#      - AWS_SECRET_ACCESS_KEY=minioadmin
+      - AWS_DEFAULT_REGION=eu-west-3
+      - TF_PLUGIN_CACHE_DIR=/root/.terraform.d/plugin-cache
+    working_dir: /terraform
+    entrypoint: [ "terraform" ]
+
+  minio:
+    image: minio/minio
     ports:
-      - "5050:80"
-    networks:
-      - microservices-net
-    restart: unless-stopped
+      - "9900:9000"
+      - "9901:9001"
+    volumes:
+      - minio_data:/data
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    command: server /data --console-address ":9001"
 
 
+  registry:
+    image: registry:2
+    container_name: registry
+    ports:
+      - "5000:5000"
+    volumes:
+      -  registry_data:/var/lib/registry
+    restart: always
 
   mongodb:
     image: mongo
@@ -107,6 +113,8 @@ networks:
     driver: bridge
 
 volumes:
-  postgres:
-  pgadmin:
   mongo:
+  registry_data:
+  minio_data:
+  terraform_plugins:
+  terraform_cache:

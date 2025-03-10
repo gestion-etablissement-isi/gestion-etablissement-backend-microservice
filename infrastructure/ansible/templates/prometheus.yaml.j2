@@ -1,0 +1,96 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+    name: prometheus-config
+    namespace: monitoring
+data:
+    prometheus.yml: |
+      global:
+        scrape_interval: 15s
+        evaluation_interval: 15s
+        scrape_timeout: 10s
+
+      alerting:
+        alertmanagers:
+          - static_configs:
+              - targets:
+                  - alertmanager:9093
+
+      rule_files:
+        - /etc/prometheus/rules/*.yml
+
+      scrape_configs:
+        - job_name: 'prometheus'
+          static_configs:
+            - targets: ['localhost:9090']
+
+        - job_name: 'spring-actuator'
+          metrics_path: '/actuator/prometheus'
+          scrape_interval: 5s
+          kubernetes_sd_configs:
+            - role: endpoints
+              namespaces:
+                names:
+                  - {{ environment | default('dev') }}
+          relabel_configs:
+            - source_labels: [__meta_kubernetes_service_label_app]
+              regex: .*service
+              action: keep
+            - source_labels: [__meta_kubernetes_endpoint_port_name]
+              regex: http
+              action: keep
+            - source_labels: [__meta_kubernetes_service_name]
+              target_label: application
+            - source_labels: [__meta_kubernetes_pod_name]
+              target_label: pod
+            - source_labels: [__meta_kubernetes_namespace]
+              target_label: namespace
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: prometheus
+    namespace: monitoring
+spec:
+    replicas: 1
+    selector:
+        matchLabels:
+            app: prometheus
+    template:
+        metadata:
+            labels:
+                app: prometheus
+        spec:
+            containers:
+                - name: prometheus
+                  image: prom/prometheus:v2.36.2
+                  args:
+                      - "--config.file=/etc/prometheus/prometheus.yml"
+                      - "--storage.tsdb.path=/prometheus"
+                      - "--storage.tsdb.retention.time=15d"
+                  ports:
+                      - containerPort: 9090
+                  volumeMounts:
+                      - name: config-volume
+                        mountPath: /etc/prometheus
+                      - name: prometheus-storage
+                        mountPath: /prometheus
+            volumes:
+                - name: config-volume
+                  configMap:
+                      name: prometheus-config
+                - name: prometheus-storage
+                  emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+    name: prometheus
+    namespace: monitoring
+spec:
+    selector:
+        app: prometheus
+    ports:
+        - port: 9090
+          targetPort: 9090
+    type: ClusterIP
